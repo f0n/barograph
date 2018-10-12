@@ -11,7 +11,8 @@
     font-family: "Arial Black", Gadget, sans-serif;
     font-size: 1em;
     margin: auto;
-      width: 20%;
+    width: 320px;
+    overflow: hidden;
       }
 
       h2 {
@@ -20,7 +21,7 @@
         font-size: 1.5em;
       }
       input[type=tel], select {
-          width: 25%;
+          width: 30%;
           //padding: 12px 20px;
           //margin: 8px 0;
           display: inline-block;
@@ -40,7 +41,7 @@
     font: 12px sans-serif;
     shape-rendering: crispEdges;
     position: relative;
-    left: 10%;
+    left: 13%;
 
   }
 
@@ -80,7 +81,7 @@
 var margin = {top: 20, right: 160, bottom: 35, left: 30};
 
 var width = 360 - margin.left - margin.right,
-    height = 500 - margin.top - margin.bottom;
+    height = 400 - margin.top - margin.bottom;
 
 var svg = d3.select("body")
   .append("svg")
@@ -249,7 +250,7 @@ tooltip.append("text")
   var margin = {top: 20, right: 160, bottom: 35, left: 30};
 
   var width = 360 - margin.left - margin.right,
-      height = 500 - margin.top - margin.bottom;
+      height = 400 - margin.top - margin.bottom;
 
   var svg = d3.select("body")
     .append("svg")
