@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>d3.js learning</title>
+  <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+  <style type="text/css">
+
+  body{
+    font-family: "Arial Black", Gadget, sans-serif;
+    font-size: 1em;
+    margin: auto;
+      width: 50%;
+      }
+
+      h2 {
+        text-align: center;
+        font-family: "Arial Black", Gadget, sans-serif;
+        font-size: 1.5em;
+      }
+      input[type=tel], select {
+          width: 25%;
+          //padding: 12px 20px;
+          //margin: 8px 0;
+          display: inline-block;
+          border: 1px solid #ddd;
+          border-radius: 4px;
+          box-sizing: border-box;
+          text-align: center;
+          font-family: "Arial Black", Gadget, sans-serif;
+          font-size: 1em;
+      }
+
+      form {
+        text-align: center;
+      }
+
+  svg {
+    font: 10px sans-serif;
+    shape-rendering: crispEdges;
+    margin-left: -20%;
+
+  }
+
+
+  .axis path,
+  .axis line {
+    fill: none;
+    stroke: #000;
+  }
+
+  path.domain {
+    stroke: none;
+  }
+
+  .y .tick line {
+    stroke: #ddd;
+  }
+  </style>
+
+</head>
+<body>
+  <h2>Training Barograph</h2>
+  <form oninput="updateData()">
+      <p>Launches: <input id="launches" type="tel" pattern="[0-9]*" value="1" /></p>
+      <p>Flight Hours: <input id="hours" type="tel" pattern="[0-9]*" value="1" /></p>
+  </form>
+  <div id="chart">
+<script type="text/javascript">
+
+// Setup svg using Bostock's margin convention
+
+var margin = {top: 20, right: 160, bottom: 35, left: 30};
+
+var width = 360 - margin.left - margin.right,
+    height = 500 - margin.top - margin.bottom;
+
+var svg = d3.select("body")
+  .append("svg")
+  .attr("width", width + margin.left + margin.right)
+  .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+  .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+
+/* Data in strings like it would be if imported from a csv */
+
+var data = [
+  { year: "2006", redDelicious: "2", mcintosh: "8", oranges: "10" , pears: "10"},
+
+];
+
+var parse = d3.time.format("%Y").parse;
+
+// Transpose the data into layers
+var dataset = d3.layout.stack()(["redDelicious", "mcintosh", "oranges", "pears"].map(function(fruit) {
+  return data.map(function(d) {
+    return {x: parse(d.year), y: +d[fruit]};
+  });
+}));
+
+
+// Set x, y and colors
+var x = d3.scale.ordinal()
+  .domain(dataset[0].map(function(d) { return d.x; }))
+  .rangeRoundBands([10, width-10], 0.02);
+
+var y = d3.scale.linear()
+  .domain([0, d3.max(dataset, function(d) {  return d3.max(d, function(d) { return d.y0 + d.y; });  })])
+  .range([height, 0]);
+var y1 = d3.scale.linear().range([height, 0]);
+y1.domain([0,16]);
+var colors = ["#ff0000", "#ffcc66", "#ffff00", "#33cc33 "];
+
+
+// Define and draw axes
+var yAxis = d3.svg.axis()
+  .scale(y)
+  .orient("left")
+  .ticks(5)
+  .tickSize(-width/2, 0, 0)
+  .tickFormat( function(d) { return d } );
+
+  var yAxisRight = d3.svg.axis()
+    .scale(y1)
+    .orient("right")
+    .ticks(8)
+    .tickSize(-width/2, 0, 0)
+    .tickFormat( function(d) { return d } );
+
+var xAxis = d3.svg.axis()
+  .scale(x)
+  .orient("bottom")
+  .tickFormat(d3.time.format("%Y"));
+
+svg.append("g")
+  .attr("class", "y axis")
+  .call(yAxis);
+
+
+  svg.append("g")
+         .attr("class", "y axis")
+         .attr("transform", "translate(" + width + " ,0)")
+         .style("fill", "black")
+         .call(yAxisRight);
+
+svg.append("g")
+  .attr("class", "x axis")
+  .attr("transform", "translate(0," + height + ")")
+  .call(xAxis);
+
+// text label for the y-launches axis
+svg.append("text")
+    .attr("transform", "rotate(-90)")
+    .attr("y", 0 - margin.left)
+    .attr("x",0 - (height / 2))
+    .attr("dy", "1em")
+    .style("text-anchor", "middle")
+    .text("Number of Launches");
+
+// text label for the y-hours axis
+svg.append("text")
+    .attr("transform", "rotate(-90)")
+    .attr("y", margin.right+22)
+    .attr("x",0-(height / 2))
+    .attr("dy", "1em")
+    .style("text-anchor", "middle")
+    .text("Total Flight Hours");
+
+// Create groups for each series, rects for each segment
+var groups = svg.selectAll("g.cost")
+  .data(dataset)
+  .enter().append("g")
+  .attr("class", "cost")
+  .style("fill", function(d, i) { return colors[i]; });
+
+var rect = groups.selectAll("rect")
+  .data(function(d) { return d; })
+  .enter()
+  .append("rect")
+  .attr("x", function(d) { return x(d.x); })
+  .attr("y", function(d) { return y(d.y0 + d.y); })
+  .attr("height", function(d) { return y(d.y0) - y(d.y0 + d.y); })
+  .attr("width", x.rangeBand())
+  .on("mouseover", function() { tooltip.style("display", null); })
+  .on("mouseout", function() { tooltip.style("display", "none"); })
+  .on("mousemove", function(d) {
+    var xPosition = d3.mouse(this)[0] - 15;
+    var yPosition = d3.mouse(this)[1] - 25;
+    tooltip.attr("transform", "translate(" + xPosition + "," + yPosition + ")");
+    tooltip.select("text").text(d.y);
+  });
+
+// Prep the tooltip bits, initial display is hidden
+var tooltip = svg.append("g")
+  .attr("class", "tooltip")
+  .style("display", "none");
+
+tooltip.append("rect")
+  .attr("width", 30)
+  .attr("height", 20)
+  .attr("fill", "white")
+  .style("opacity", 0.5);
+
+tooltip.append("text")
+  .attr("x", 15)
+  .attr("dy", "1.2em")
+  .style("text-anchor", "middle")
+  .attr("font-size", "12px")
+  .attr("font-weight", "bold");
+
+  // *************************
+  var flight = [10,10];
+
+
+  var launches = document.getElementById("launches").value;
+  var hours = document.getElementById("hours").value;
+
+  var xlaunches = 0.0087*launches*launches + 0.2688*launches;
+  var ylaunches = (Math.abs(xlaunches - hours)/2) + Math.min(xlaunches,hours);
+  var topp = height - ((ylaunches / 16) * height);
+  // add circles to svg
+  svg.selectAll(".dot")
+      .data(flight)
+      .enter().append("circle")
+      .attr("class", "dot")
+      .attr("r", "8px")
+		.attr("fill", "#000000")
+      .attr("cx", width/2)
+      .attr("cy", topp);
+
+
+  //**************************
+
+
+  function updateData(){
+    d3.select("svg").remove();
+  // Setup svg using Bostock's margin convention
+
+  // Setup svg using Bostock's margin convention
+
+  var margin = {top: 20, right: 160, bottom: 35, left: 30};
+
+  var width = 360 - margin.left - margin.right,
+      height = 500 - margin.top - margin.bottom;
+
+  var svg = d3.select("body")
+    .append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+    .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+
+  /* Data in strings like it would be if imported from a csv */
+
+  var data = [
+    { year: "2006", redDelicious: "2", mcintosh: "8", oranges: "10" , pears: "10"},
+
+  ];
+
+  var parse = d3.time.format("%Y").parse;
+
+  // Transpose the data into layers
+  var dataset = d3.layout.stack()(["redDelicious", "mcintosh", "oranges", "pears"].map(function(fruit) {
+    return data.map(function(d) {
+      return {x: parse(d.year), y: +d[fruit]};
+    });
+  }));
+
+
+  // Set x, y and colors
+  var x = d3.scale.ordinal()
+    .domain(dataset[0].map(function(d) { return d.x; }))
+    .rangeRoundBands([10, width-10], 0.02);
+
+  var y = d3.scale.linear()
+    .domain([0, d3.max(dataset, function(d) {  return d3.max(d, function(d) { return d.y0 + d.y; });  })])
+    .range([height, 0]);
+  var y1 = d3.scale.linear().range([height, 0]);
+  y1.domain([0,16]);
+  var colors = ["#ff0000", "#ffcc66", "#ffff00", "#33cc33 "];
+
+
+  // Define and draw axes
+  var yAxis = d3.svg.axis()
+    .scale(y)
+    .orient("left")
+    .ticks(5)
+    .tickSize(-width/2, 0, 0)
+    .tickFormat( function(d) { return d } );
+
+    var yAxisRight = d3.svg.axis()
+      .scale(y1)
+      .orient("right")
+      .ticks(8)
+      .tickSize(-width/2, 0, 0)
+      .tickFormat( function(d) { return d } );
+
+  var xAxis = d3.svg.axis()
+    .scale(x)
+    .orient("bottom")
+    .tickFormat(d3.time.format("%Y"));
+
+  svg.append("g")
+    .attr("class", "y axis")
+    .call(yAxis);
+
+
+    svg.append("g")
+           .attr("class", "y axis")
+           .attr("transform", "translate(" + width + " ,0)")
+           .style("fill", "black")
+           .call(yAxisRight);
+
+  svg.append("g")
+    .attr("class", "x axis")
+    .attr("transform", "translate(0," + height + ")")
+    .call(xAxis);
+
+  // text label for the y-launches axis
+  svg.append("text")
+      .attr("transform", "rotate(-90)")
+      .attr("y", 0 - margin.left)
+      .attr("x",0 - (height / 2))
+      .attr("dy", "1em")
+      .style("text-anchor", "middle")
+      .text("Number of Launches");
+
+  // text label for the y-hours axis
+  svg.append("text")
+      .attr("transform", "rotate(-90)")
+      .attr("y", margin.right+22)
+      .attr("x",0-(height / 2))
+      .attr("dy", "1em")
+      .style("text-anchor", "middle")
+      .text("Total Flight Hours");
+
+  // Create groups for each series, rects for each segment
+  var groups = svg.selectAll("g.cost")
+    .data(dataset)
+    .enter().append("g")
+    .attr("class", "cost")
+    .style("fill", function(d, i) { return colors[i]; });
+
+  var rect = groups.selectAll("rect")
+    .data(function(d) { return d; })
+    .enter()
+    .append("rect")
+    .attr("x", function(d) { return x(d.x); })
+    .attr("y", function(d) { return y(d.y0 + d.y); })
+    .attr("height", function(d) { return y(d.y0) - y(d.y0 + d.y); })
+    .attr("width", x.rangeBand())
+    .on("mouseover", function() { tooltip.style("display", null); })
+    .on("mouseout", function() { tooltip.style("display", "none"); })
+    .on("mousemove", function(d) {
+      var xPosition = d3.mouse(this)[0] - 15;
+      var yPosition = d3.mouse(this)[1] - 25;
+      tooltip.attr("transform", "translate(" + xPosition + "," + yPosition + ")");
+      tooltip.select("text").text(d.y);
+    });
+
+  // Prep the tooltip bits, initial display is hidden
+  var tooltip = svg.append("g")
+    .attr("class", "tooltip")
+    .style("display", "none");
+
+  tooltip.append("rect")
+    .attr("width", 30)
+    .attr("height", 20)
+    .attr("fill", "white")
+    .style("opacity", 0.5);
+
+  tooltip.append("text")
+    .attr("x", 15)
+    .attr("dy", "1.2em")
+    .style("text-anchor", "middle")
+    .attr("font-size", "12px")
+    .attr("font-weight", "bold");
+
+    // *************************
+    var flight = [10,10];
+
+
+    var launches = document.getElementById("launches").value;
+    var hours = document.getElementById("hours").value;
+
+    var xlaunches = 0.0087*launches*launches + 0.2688*launches;
+    var ylaunches = (Math.abs(xlaunches - hours)/2) + Math.min(xlaunches,hours);
+    var topp = height - ((ylaunches / 16) * height);
+    // add circles to svg
+    svg.selectAll(".dot")
+        .data(flight)
+        .enter().append("circle")
+        .attr("class", "dot")
+        .attr("r", "8px")
+  		.attr("fill", "#000000")
+        .attr("cx", width/2)
+        .attr("cy", topp);
+  };
+    //**************************
+select('g').style('transform', 'translate(50%, 50%)')
+</script>
+</div>
+</body>
+</html>
