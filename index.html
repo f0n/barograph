@@ -18,20 +18,26 @@
       h2 {
         text-align: center;
         font-family: "Arial Black", Gadget, sans-serif;
-        font-size: 1.5em;
-	margin: 0 0 0 0;
+        font-size: 1.0em;
+        margin: 0 0 0 0;
       }
       input[type=tel], select {
           width: 30%;
-          //padding: 12px 20px;
-          //margin: 8px 0;
+          padding: 0px 0px;
+          margin: 2px 0;
           display: inline-block;
           border: 1px solid #ddd;
           border-radius: 4px;
           box-sizing: border-box;
           text-align: center;
           font-family: "Arial Black", Gadget, sans-serif;
-          font-size: 1em;
+          font-size: .5em;
+      }
+
+      p {
+        padding: 0px 0px;
+        margin: 2px 0;
+        text-align: center;
       }
 
       form {
@@ -82,7 +88,7 @@
 var margin = {top: 20, right: 160, bottom: 35, left: 30};
 
 var width = 360 - margin.left - margin.right,
-    height = 350 - margin.top - margin.bottom;
+    height = 300 - margin.top - margin.bottom;
 
 var svg = d3.select("body")
   .append("svg")
@@ -251,7 +257,7 @@ tooltip.append("text")
   var margin = {top: 20, right: 160, bottom: 35, left: 30};
 
   var width = 360 - margin.left - margin.right,
-      height = 350 - margin.top - margin.bottom;
+      height = 400 - margin.top - margin.bottom;
 
   var svg = d3.select("body")
     .append("svg")
@@ -411,5 +417,6 @@ tooltip.append("text")
 
 </script>
 </div>
+<p>Adapted from <a href="https://ozreport.com/17.176.1">Oz Report</a></p>
 </body>
 </html>
