@@ -2,8 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="height=device-height, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>HG Training Barograph</title>
+  <title>Training Barometer for HG</title>
   <script src="https://d3js.org/d3.v3.min.js" charset="utf-8"></script>
   <style type="text/css">
 
@@ -11,7 +10,7 @@
     font-family: "Arial Black", Gadget, sans-serif;
     font-size: 1em;
     margin: auto;
-      width: 50%;
+      width: 20%;
       }
 
       h2 {
@@ -37,9 +36,10 @@
       }
 
   svg {
-    font: 10px sans-serif;
+    font: 12px sans-serif;
     shape-rendering: crispEdges;
-    margin-left: -20%;
+    position: relative;
+    left: 10%;
 
   }
 
@@ -57,6 +57,11 @@
   .y .tick line {
     stroke: #ddd;
   }
+
+.x text
+ { display: none; }
+
+
   </style>
 
 </head>
@@ -400,6 +405,7 @@ tooltip.append("text")
         .attr("cy", topp);
   };
     //**************************
+
 </script>
 </div>
 </body>
